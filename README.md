@@ -1,7 +1,6 @@
 # 🔐 Cross-Site Scripting (XSS) — Eksperimen Keamanan Web
 
-> Repositori ini dibuat sebagai bagian dari **Tugas UTS Pemrograman Web** — berisi eksperimen langsung tentang serangan XSS dan cara mencegahnya.
-
+> Repositori ini dibuat sebagai bagian dari **Tugas UTS Pemrograman Web**
 ---
 
 ## 📋 Deskripsi
@@ -10,19 +9,9 @@ Cross-Site Scripting (XSS) adalah salah satu kerentanan keamanan web paling umum
 
 ---
 
-## 📁 Struktur File
-
-```
-📦 xss-experiment
- ┣ 📄 demo_xss_eksperimen.html   # File utama demo serangan & mitigasi XSS
- ┗ 📄 README.md                  # Dokumentasi proyek ini
-```
-
----
-
 ## 🧪 Cara Menjalankan Eksperimen
 
-**Tidak perlu install apapun!** Cukup:
+Cukup:
 
 1. Clone atau download repositori ini
 ```bash
