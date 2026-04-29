@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Demo XSS - Eksperimen Keamanan Web</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 800px; margin: 30px auto; padding: 20px; background: #f5f5f5; }
+    .card { background: white; border-radius: 10px; padding: 25px; margin-bottom: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+    h1 { color: #1A1A2E; }
+    h2 { color: #2E75B6; }
+    input { width: 70%; padding: 10px; border: 2px solid #ddd; border-radius: 6px; font-size: 15px; }
+    button { padding: 10px 20px; border: none; border-radius: 6px; cursor: pointer; font-size: 15px; margin-left: 8px; }
+    .btn-red { background: #E74C3C; color: white; }
+    .btn-green { background: #27AE60; color: white; }
+    .hasil { margin-top: 15px; padding: 12px; border-radius: 6px; min-height: 40px; font-size: 15px; }
+    .hasil-rentan { background: #FFF5F5; border-left: 4px solid #E74C3C; }
+    .hasil-aman { background: #F0FFF4; border-left: 4px solid #27AE60; }
+    .badge-bahaya { background: #E74C3C; color: white; padding: 3px 10px; border-radius: 20px; font-size: 12px; margin-left: 8px; }
+    .badge-aman { background: #27AE60; color: white; padding: 3px 10px; border-radius: 20px; font-size: 12px; margin-left: 8px; }
+    code { background: #f0f0f0; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+    .tip { background: #EEF7FF; border-left: 4px solid #2E75B6; padding: 12px; border-radius: 4px; margin-top: 10px; font-size: 14px; }
+    .payload-btn { background: #666; color: white; padding: 6px 12px; border-radius: 4px; font-size: 12px; cursor: pointer; border: none; margin: 3px; }
+  </style>
+</head>
+<body>
+
+  <div class="card">
+    <h1>🔐 Demo Eksperimen XSS</h1>
+    <p>File ini dibuat untuk keperluan <strong>edukasi</strong> sebagai bahan artikel tugas UTS Pemrograman Web. Eksperimen ini menunjukkan perbedaan antara kode yang rentan dan kode yang aman terhadap serangan Cross-Site Scripting (XSS).</p>
+  </div>
+
+  <!-- SECTION 1: RENTAN -->
+  <div class="card">
+    <h2>❌ Versi RENTAN <span class="badge-bahaya">BERBAHAYA</span></h2>
+    <p>Menggunakan <code>innerHTML</code> langsung tanpa sanitasi input.</p>
+    
+    <input type="text" id="inputRentan" placeholder="Coba ketik: &lt;img src=x onerror=alert('XSS!')&gt;">
+    <button class="btn-red" onclick="cariRentan()">Cari</button>
+
+    <div style="margin-top: 10px;">
+      <strong>Payload XSS untuk dicoba:</strong><br>
+      <button class="payload-btn" onclick="isiPayload('<img src=x onerror=alert(\'XSS Berhasil!\')>')">Payload 1: img onerror</button>
+      <button class="payload-btn" onclick="isiPayload('<b style=color:red>Teks Berubah!</b>')">Payload 2: inject HTML</button>
+      <button class="payload-btn" onclick="isiPayload('<script>document.body.style.background=\'red\'<\/script>')">Payload 3: ubah halaman</button>
+    </div>
+
+    <div id="hasilRentan" class="hasil hasil-rentan">Hasil pencarian akan muncul di sini...</div>
+    
+    <div class="tip">⚠️ <strong>Kenapa berbahaya?</strong> Karena <code>innerHTML</code> mengeksekusi tag HTML dan event handler seperti <code>onerror</code>, <code>onclick</code>, dsb.</div>
+  </div>
+
+  <!-- SECTION 2: AMAN -->
+  <div class="card">
+    <h2>✅ Versi AMAN <span class="badge-aman">DILINDUNGI</span></h2>
+    <p>Menggunakan <code>textContent</code> — input diperlakukan sebagai teks murni.</p>
+
+    <input type="text" id="inputAman" placeholder="Coba payload yang sama di sini...">
+    <button class="btn-green" onclick="cariAman()">Cari</button>
+
+    <div id="hasilAman" class="hasil hasil-aman">Hasil pencarian akan muncul di sini...</div>
+
+    <div class="tip">✅ <strong>Kenapa aman?</strong> Karena <code>textContent</code> hanya memasukkan teks, semua karakter HTML otomatis di-escape sehingga script tidak bisa berjalan.</div>
+  </div>
+
+  <!-- SECTION 3: PERBANDINGAN KODE -->
+  <div class="card">
+    <h2>📋 Perbandingan Kode</h2>
+    <table style="width:100%; border-collapse: collapse; font-size: 14px;">
+      <tr style="background:#f0f0f0;">
+        <th style="padding:10px; text-align:left; border:1px solid #ddd;">❌ Kode Rentan</th>
+        <th style="padding:10px; text-align:left; border:1px solid #ddd;">✅ Kode Aman</th>
+      </tr>
+      <tr>
+        <td style="padding:10px; border:1px solid #ddd; background:#FFF5F5; font-family:monospace; color:#C0392B;">
+          document.getElementById('hasil')<br>.innerHTML = 'Hasil: ' + input;
+        </td>
+        <td style="padding:10px; border:1px solid #ddd; background:#F0FFF4; font-family:monospace; color:#27AE60;">
+          document.getElementById('hasil')<br>.textContent = 'Hasil: ' + input;
+        </td>
+      </tr>
+    </table>
+    <p style="font-size:14px; color:#666;">Perubahan hanya satu kata: <code>innerHTML</code> → <code>textContent</code>, tapi dampaknya sangat besar!</p>
+  </div>
+
+  <script>
+    function cariRentan() {
+      var input = document.getElementById('inputRentan').value;
+      // BAHAYA: langsung masukkan ke innerHTML tanpa filter
+      document.getElementById('hasilRentan').innerHTML = 'Hasil pencarian: ' + input;
+    }
+
+    function cariAman() {
+      var input = document.getElementById('inputAman').value;
+      // AMAN: gunakan textContent
+      document.getElementById('hasilAman').textContent = 'Hasil pencarian: ' + input;
+    }
+
+    function isiPayload(payload) {
+      document.getElementById('inputRentan').value = payload;
+    }
+  </script>
+
+</body>
+</html>
